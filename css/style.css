@@ -1,0 +1,76 @@
+.app {
+    padding: 50px 100px;
+}
+.user_id {
+    display: flex;
+    flex: 1;
+}
+.get_data {
+    display: flex;
+    flex: 2;
+}
+input::-webkit-input-placeholder {
+    font-size: 10px;
+}
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.get_error {
+    text-align: center;
+}
+.form_section {
+    display: flex;
+    gap: 2px;
+}
+.file_form {
+    margin-top: 8px;
+}
+.get_data_section {
+    background: #0a0a0a;
+    display: flex;
+    gap: 2px;
+    margin-bottom: 2px;
+}
+.input_group {
+    display: flex;
+}
+.radio {
+    width: 100%;
+    color: #b0b0b0;
+}
+.price_column_description {
+    flex: 2;
+}
+.price_column_item {
+    flex: 1;
+}
+.price_import {
+    margin-top: 16px;
+}
+/* Индикатор загрузки */
+.loader_section {
+    display: flex;
+    justify-content: center;
+}
+.no_valid {
+    border-color: red;
+}
+.loader {
+    border: 4px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 4px solid #0a0a0a;
+    width: 48px;
+    height: 48px;
+    -webkit-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+}
+@-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

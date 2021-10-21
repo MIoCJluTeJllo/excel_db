@@ -1,0 +1,30 @@
+.app {
+    padding: 20px 40px;
+}
+table {
+    border: solid;
+    border-radius: 5px;
+}
+thead {
+    font-size: 16px;
+    text-align: center;
+}
+tbody {
+    font-size: 14px;
+}
+img {
+    width: 128px;
+}
+.confirm_btn {
+    position: fixed;
+    border-radius: 50px;
+    text-align: center;
+    right: 5px;
+    bottom: 10px;
+    width: 150px;
+    text-align: center;
+    vertical-align: center;
+}
+.action_column {
+    text-align: center;
+}
