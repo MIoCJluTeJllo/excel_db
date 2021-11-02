@@ -6,6 +6,17 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class psed_data
 {
+    public function __construct($item_title, $item_desc, $i_price, $category, $type, $img_path, $img_type)
+    {
+        $this->item_title = $item_title;
+        $this->item_desc = $item_desc;
+        $this->i_price = $i_price;
+        $this->category = $category;
+        $this->type = $type;
+        $this->img_path = $img_path;
+        $this->img_type = $img_type;
+    }
+
     /**
      * @ORM\Id
      * @ORM\Column(type="integer")
@@ -27,19 +38,19 @@ class psed_data
     /**
      * @ORM\Column(type="integer")
      */
-    private $fk_i_category_id;
+    private $category;
     /**
      * @ORM\Column(type="integer")
      */
-    private $id_item_class;
+    private $type;
     /**
      * @ORM\Column(type="string")
      */
-    private $resurs;
+    private $img_path;
     /**
      * @ORM\Column(type="string")
      */
-    private $resurs_type;
+    private $img_type;
 
     /**
      * @return mixed
@@ -47,14 +58,6 @@ class psed_data
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * @param mixed $id
-     */
-    public function setId($id)
-    {
-        $this->id = $id;
     }
 
     /**
@@ -66,27 +69,11 @@ class psed_data
     }
 
     /**
-     * @param mixed $item_title
-     */
-    public function setItemTitle($item_title)
-    {
-        $this->item_title = $item_title;
-    }
-
-    /**
      * @return mixed
      */
     public function getItemDesc()
     {
         return $this->item_desc;
-    }
-
-    /**
-     * @param mixed $item_desc
-     */
-    public function setItemDesc($item_desc)
-    {
-        $this->item_desc = $item_desc;
     }
 
     /**
@@ -98,84 +85,34 @@ class psed_data
     }
 
     /**
-     * @param mixed $i_price
+     * @return mixed
      */
-    public function setIPrice($i_price)
+    public function getCategory()
     {
-        $this->i_price = $i_price;
+        return $this->category;
     }
 
     /**
      * @return mixed
      */
-    public function getFkICategoryId()
+    public function getType()
     {
-        return $this->fk_i_category_id;
-    }
-
-    /**
-     * @param mixed $fk_i_category_id
-     */
-    public function setFkICategoryId($fk_i_category_id)
-    {
-        $this->fk_i_category_id = $fk_i_category_id;
+        return $this->type;
     }
 
     /**
      * @return mixed
      */
-    public function getIdItemClass()
+    public function getImgPath()
     {
-        return $this->id_item_class;
-    }
-
-    /**
-     * @param mixed $id_item_class
-     */
-    public function setIdItemClass($id_item_class)
-    {
-        $this->id_item_class = $id_item_class;
+        return $this->img_path;
     }
 
     /**
      * @return mixed
      */
-    public function getResurs()
+    public function getImgType()
     {
-        return $this->resurs;
-    }
-
-    /**
-     * @param mixed $resurs
-     */
-    public function setResurs($resurs)
-    {
-        $this->resurs = $resurs;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getResursType()
-    {
-        return $this->resurs_type;
-    }
-
-    /**
-     * @param mixed $resurs_type
-     */
-    public function setResursType($resurs_type)
-    {
-        $this->resurs_type = $resurs_type;
-    }
-
-    public function __get($prop)
-    {
-        return $this->$prop;
-    }
-
-    public function __isset($prop) : bool
-    {
-        return isset($this->$prop);
+        return $this->img_type;
     }
 }

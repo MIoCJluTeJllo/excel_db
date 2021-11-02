@@ -32,3 +32,64 @@ function file_get_contents_curl($url) {
 
     return $data;
 }
+
+//изменение размера с сохранением пропорций
+function resizeImage($filename, $max_width, $max_height, $path, $ext)
+{
+    list($orig_width, $orig_height) = getimagesize($filename);
+
+    $width = $orig_width;
+    $height = $orig_height;
+
+    # taller
+    if ($height > $max_height) {
+        $width = ($max_height / $height) * $width;
+        $height = $max_height;
+    }
+
+    # wider
+    if ($width > $max_width) {
+        $height = ($max_width / $width) * $height;
+        $width = $max_width;
+    }
+
+    $image_p = imagecreatetruecolor($width, $height);
+
+    if (in_array($ext, ['jpg', 'jpeg'])){
+        $image = imagecreatefromjpeg($filename);
+
+        imagecopyresampled($image_p, $image, 0, 0, 0, 0,
+            $width, $height, $orig_width, $orig_height);
+
+        imagejpeg($image_p, $path);
+    }
+    if ($ext == 'png'){
+
+        $background = imagecolorallocate($image_p , 0, 0, 0);
+
+        imagecolortransparent($image_p, $background);
+        imagealphablending($image_p, false);
+        imagesavealpha($image_p, true);
+
+        $image = imagecreatefrompng($filename);
+        imagecopyresampled($image_p, $image, 0, 0, 0, 0,
+            $width, $height, $orig_width, $orig_height);
+
+        imagepng($image_p, $path);
+    }
+}
+
+function psw_generate(
+    int $length = 8,
+    string $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+): string {
+    if ($length < 1) {
+        throw new \RangeException("Length must be a positive integer");
+    }
+    $pieces = [];
+    $max = mb_strlen($keyspace, '8bit') - 1;
+    for ($i = 0; $i < $length; ++$i) {
+        $pieces []= $keyspace[random_int(0, $max)];
+    }
+    return implode('', $pieces);
+}

@@ -1,111 +1,83 @@
 <?php
+
+
+
 use Doctrine\ORM\Mapping as ORM;
 
 /**
+ * OcTItemResource
+ *
+ * @ORM\Table(name="oc_t_item_resource", indexes={@ORM\Index(name="fk_i_item_id", columns={"fk_i_item_id"}), @ORM\Index(name="idx_s_content_type", columns={"pk_i_id", "s_content_type"})})
  * @ORM\Entity
  */
 class oc_t_item_resource
 {
+    public function __construct($fkIItem, $sName, $sExtension, $sContentType)
+    {
+        $this->fkIItem = $fkIItem;
+        $this->sName = $sName;
+        $this->sExtension = $sExtension;
+        $this->sContentType = $sContentType;
+    }
     /**
+     * @var int
+     *
+     * @ORM\Column(name="pk_i_id", type="integer", nullable=false, options={"unsigned"=true})
      * @ORM\Id
-     * @ORM\Column(type="integer")
-     * @ORM\GeneratedValue
+     * @ORM\GeneratedValue(strategy="IDENTITY")
      */
-    private $id;
-    /**
-     * @ORM\ManyToOne(targetEntity="oc_t_item_excel")
-     */
-    private $fk_i_item;
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $s_content_type;
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $s_name;
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $s_path;
+    private $pkIId;
 
     /**
-     * @return mixed
+     * @var bool
+     *
+     * @ORM\Column(name="b_main_img", type="boolean", nullable=false)
      */
-    public function getId()
-    {
-        return $this->id;
-    }
+    private $bMainImg = '0';
 
     /**
-     * @param mixed $id
+     * @var string|null
+     *
+     * @ORM\Column(name="s_name", type="string", length=60, nullable=true)
      */
-    public function setId($id)
-    {
-        $this->id = $id;
-    }
+    private $sName;
 
     /**
-     * @return mixed
+     * @var string|null
+     *
+     * @ORM\Column(name="s_extension", type="string", length=10, nullable=true)
      */
-    public function getFkIItem()
-    {
-        return $this->fk_i_item;
-    }
+    private $sExtension;
 
     /**
-     * @param mixed $fk_i_item
+     * @var string|null
+     *
+     * @ORM\Column(name="s_content_type", type="string", length=40, nullable=true)
      */
-    public function setFkIItem($fk_i_item)
-    {
-        $this->fk_i_item = $fk_i_item;
-    }
+    private $sContentType;
 
     /**
-     * @return mixed
+     * @var string|null
+     *
+     * @ORM\Column(name="s_path", type="string", length=250, nullable=true)
      */
-    public function getSContentType()
-    {
-        return $this->s_content_type;
-    }
+    private $sPath = 'oc-content/uploads/222/';
 
     /**
-     * @param mixed $s_content_type
+     * @var \oc_t_item
+     *
+     * @ORM\ManyToOne(targetEntity="oc_t_item")
+     * @ORM\JoinColumns({
+     *   @ORM\JoinColumn(name="fk_i_item_id", referencedColumnName="pk_i_id")
+     * })
      */
-    public function setSContentType($s_content_type)
-    {
-        $this->s_content_type = $s_content_type;
-    }
+    private $fkIItem;
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getSName()
+    public function getPkIId(): int
     {
-        return $this->s_name;
-    }
-
-    /**
-     * @param mixed $s_name
-     */
-    public function setSName($s_name)
-    {
-        $this->s_name = $s_name;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getSPath()
-    {
-        return $this->s_path;
-    }
-
-    /**
-     * @param mixed $s_path
-     */
-    public function setSPath($s_path)
-    {
-        $this->s_path = $s_path;
+        return $this->pkIId;
     }
 }

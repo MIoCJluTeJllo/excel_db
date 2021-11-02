@@ -3,87 +3,110 @@
     include 'const.php';
 
     require_once "bootstrap.php";
-    include 'db/entities/psed_data.php';
-    include 'db/entities/oc_t_item_excel.php';
-    include 'db/entities/oc_item_description.php';
-    include 'db/entities/oc_t_item_resource.php';
-    include 'db/entities/oc_category_keys.php';
-    include 'db/entities/oc_type_item_keys.php';
-    include 'db/entities/oc_t_user.php';
-    include 'db/entities/stat_item.php';
-
+    include "utils.php";
+    include "db/entities/oc_t_user.php";
+    include "db/entities/psed_data.php";
+    include "db/entities/oc_t_item.php";
+    include "db/entities/oc_t_item_description.php";
+    include "db/entities/oc_t_item_meta.php";
+    include "db/entities/oc_t_item_location.php";
+    include "db/entities/oc_t_item_resource.php";
 
     if (isset($_POST['user_id'])){
-
         $user_id = $_POST['user_id'];
+        $price = $_POST['price'];
+        $desc = $_POST['desc'];
         //все данные из выпадающих списков типа и категории товара
-        $categories = $_POST['categories'];
-        $types = $_POST['types'];
-        //обновляем эти данные
-        foreach ($categories as $category){
-            $changeCategory = $entityManager->getRepository(psed_data::class)->findOneBy(['id' => $category['id']]);
-            $changeCategory->setFkICategoryId($category['val']);
-            $entityManager->persist($changeCategory);
-            $entityManager->flush();
-        }
-        foreach ($types as $type){
-            $changeType = $entityManager->getRepository(psed_data::class)->findOneBy(['id' => $type['id']]);
-            $changeType->setIdItemClass($type['val']);
-            $entityManager->persist($changeType);
-            $entityManager->flush();
-        }
+        $user_info = $entityManager->getRepository(oc_t_user::class)->findOneBy(['pkIId' => $user_id]);
 
         $psed_data = $entityManager->getRepository(psed_data::class)->findAll();
-        $psed_data_titles = array_column($psed_data, 'item_title');
-        $exist_excel_items = $entityManager->getRepository(oc_t_item_excel::class)->findBy(['fk_i_user' => $user_id]);
-        foreach ($exist_excel_items as $excel_item){
-            $exist_description = $entityManager->getRepository(oc_item_description::class)->findOneBy(['pk_i' => $excel_item->getId()]);
-            if ($exist_description){
-                $index = array_search($exist_description->getSTitle(), $psed_data_titles);
-                if (array_key_exists($index, $psed_data)){
-                    $psed_item = $psed_data[$index];
-                    $excel_item->setIPrice($psed_item->getIPrice());
-                    $entityManager->persist($excel_item);
-                    $entityManager->flush();
-                    unset($psed_data[$index]);
-                    unset($psed_data_titles[$index]);
+        foreach ($psed_data as $item){
+            $exist_desc = $entityManager->getRepository(oc_t_item_description::class)->findOneBy(['sTitle' => $item->getItemTitle()]);
+            if ($exist_desc){
+                $exist_id = $exist_desc->getFkIItemId();
+
+                $exist_item = $entityManager->getRepository(oc_t_item::class)->findOneBy(['pkIId' => $exist_id]);
+                $exist_meta = $entityManager->getRepository(oc_t_item_meta::class)->findOneBy(['fkIItemId' => $exist_id]);
+                $exist_location = $entityManager->getRepository(oc_t_item_location::class)->findOneBy(['fkIItemId' => $exist_id]);
+                $exist_resource = $entityManager->getRepository(oc_t_item_resource::class)->findOneBy(['fkIItem' => $exist_item]);
+                $user_info->setIItems($user_info->getIItems() - 1);
+
+                if ($exist_desc){
+                    $entityManager->remove($exist_desc);
+                }
+                if ($exist_item){
+                    $entityManager->remove($exist_item);
+                }
+                if ($exist_meta){
+                    $entityManager->remove($exist_meta);
+                }
+                if ($exist_location){
+                    $entityManager->remove($exist_location);
+                }
+                if ($exist_resource){
+                    $entityManager->remove($exist_resource);
+                }
+                if ($user_info){
+                    $entityManager->persist($user_info);
+                }
+
+                $entityManager->flush();
+            }
+            $price_key = array_search($user_info->getPkIId(), array_column($price, 'id'));
+            $desc_key = array_search($user_info->getPkIId(), array_column($desc, 'id'));
+
+            $new_item = new oc_t_item(
+                $user_info->getPkIId(),
+                $user_info->getSName(),
+                $user_info->getSEmail(),
+                $price[$price_key]['val'],
+                $item->getCategory(),
+                $item->getType(),
+                psw_generate()
+            );
+            $entityManager->persist($new_item);
+            $entityManager->flush();
+
+            $user_info->setIItems($user_info->getIItems() + 1);
+            $entityManager->persist($user_info);
+
+            $item_id = $new_item->getPkIId();
+
+            $new_decs = new oc_t_item_description($item_id, $item->getItemTitle(), $desc[$desc_key]['val']);
+            $entityManager->persist($new_decs);
+
+            $new_meta = new oc_t_item_meta();
+            $new_meta->setFkIItemId($item_id);
+            $entityManager->persist($new_meta);
+
+            $new_location = new oc_t_item_location(
+                $item_id,
+                $user_info->getSAddress(),
+                $user_info->getFkIRegionId(),
+                $user_info->getSRegion(),
+                $user_info->getFkICityId(),
+                $user_info->getSCity());
+            $entityManager->persist($new_location);
+
+            if ($item->getImgPath()){
+                $new_resource = new oc_t_item_resource(
+                    $new_item,
+                    psw_generate(),
+                    $item->getImgType(),
+                    "image/{$item->getImgType()}");
+
+                $entityManager->persist($new_resource);
+                $entityManager->flush();
+
+                $img_id = $new_resource->getPkIId();
+                foreach (['_original', '_preview', '_thumbnail'] as $img_variant){
+                    $img_ext = "{$img_variant}.{$item->getImgType()}";
+                    rename(
+                        "{$IMG_PATH}/{$item->getImgPath()}{$img_ext}",
+                        "{$IMG_PATH}/{$img_id}{$img_ext}"
+                    );
                 }
             }
-        }
-        $user_data = $entityManager->getRepository(oc_t_user::class)->findOneBy(['id' => $user_id]);
-        foreach ($psed_data as $psed_item){
-            $oc_t_item_excel = new oc_t_item_excel();
-            $oc_t_item_excel->setFkIUser($user_data);
-            $oc_t_item_excel->setSContactName($user_data->getSName());
-            $oc_t_item_excel->setSContactEmail($user_data->getSEmail());
-            $oc_t_item_excel->setFkICategory(
-                $entityManager->getRepository(oc_category_keys::class)->findOneBy(['id' => $psed_item->getFkICategoryId()])
-            );
-            $oc_t_item_excel->setFkIType(
-                $entityManager->getRepository(oc_type_item_keys::class)->findOneBy(['id' => $psed_item->getIdItemClass()])
-            );
-            $oc_t_item_excel->setIPrice($psed_item->getIPrice());
-            $entityManager->persist($oc_t_item_excel);
-
-            $oc_item_description = new oc_item_description();
-            $oc_item_description->setPkI($oc_t_item_excel);
-            $oc_item_description->setSTitle($psed_item->getItemTitle());
-            $oc_item_description->setSDescription($psed_item->getItemDesc());
-            $entityManager->persist($oc_item_description);
-
-            $oc_t_item_resource = new oc_t_item_resource();
-            $oc_t_item_resource->setFkIItem($oc_t_item_excel);
-            $oc_t_item_resource->setSContentType($psed_item->getResursType());
-            $oc_t_item_resource->setSName($psed_item->getResurs());
-            $oc_t_item_resource->setSPath($IMG_PATH);
-            $entityManager->persist($oc_t_item_resource);
-
-            $stat_item = new stat_item();
-            $stat_item->setFkIItem($oc_t_item_excel);
-            $stat_item->setItemTitle($psed_item->getItemTitle());
-            $entityManager->persist($stat_item);
-
-            $entityManager->flush();
         }
         echo 1;
         exit;

@@ -74,3 +74,16 @@ input::-webkit-input-placeholder {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+textarea {
+    min-width: 200px;
+    min-height: 70px;
+    resize: vertical;
+}
+.dropdown {
+    width: 180px;
+    height: 70px;
+}
+th {
+    text-align: center;
+}

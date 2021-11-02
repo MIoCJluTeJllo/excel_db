@@ -16,7 +16,7 @@
                 ]
             ];
             //если информация о прайс листе имеется отправляем ее тоже
-            $user_price = $entityManager->getRepository(oc_user_excel_price::class)->findOneBy(['id_user' => $user->getId()]);
+            $user_price = $entityManager->getRepository(oc_user_excel_price::class)->findOneBy(['idUser' => $user->getPkIId()]);
             if ($user_price){
                 $result['price'] = [
                     'num_title' => $user_price->getNumTitle(),

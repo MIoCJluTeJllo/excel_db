@@ -5,10 +5,11 @@
 
     require_once "bootstrap.php";
     include "db/entities/oc_t_user.php";
-    include "db/entities/oc_user_excel_price.php";
-    include "db/entities/oc_type_item_keys.php";
-    include "db/entities/oc_category_keys.php";
     include "db/entities/psed_data.php";
+    include "db/entities/oc_t_category_description.php";
+    include "db/entities/oc_user_excel_price.php";
+    include "db/entities/oc_category_keys.php";
+    include "db/entities/oc_t_type_description.php";
 
     $user_id = $_POST['user_id'];
     $start_row = $_POST['start_row'];
@@ -19,29 +20,25 @@
     $img_column = $_POST['img_column'];
 
     $user = $entityManager->find(oc_t_user::class, $user_id);
-    $user_price = $entityManager->getRepository(oc_user_excel_price::class)->findOneBy(['id_user' => $user->getId()]);
+
+    $user_price = $entityManager->getRepository(oc_user_excel_price::class)->findOneBy(['idUser' => $user->getPkIId()]);
     if (!$user_price){
-        $user_price = new oc_user_excel_price();
+        $user_price = new oc_user_excel_price($name_column, $desc_columns, $price_column, $start_row, $user);
+        $entityManager->persist($user_price);
+        $entityManager->flush();
     }
-    $user_price->setIdUser($user);
-    $user_price->setNumTitle($name_column);
-    $user_price->setNumDesc($desc_columns);
-    $user_price->setNumPrice($price_column);
-    $user_price->setNumStr($start_row);
 
-    $entityManager->persist($user_price);
-    $entityManager->flush();
-
-    //получаем все типы и категории
-    $categories = $entityManager->getRepository(oc_category_keys::class)->findAll();
-    $types = $entityManager->getRepository(oc_type_item_keys::class)->findAll();
-
-    //начинаем читать все данные из таблицы
     $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
     $file = $_FILES['price_list']['tmp_name'];
+
+    $excel_name = explode('.', $_FILES['price_list']['name'])[0];
     $sheet = $reader->load($file)->getActiveSheet();
     $data = $reader->load($file)->getActiveSheet()->toArray();
     $result = [];
+
+    $keys = $entityManager->getRepository(oc_category_keys::class)->findAll();
+    $categories = $entityManager->getRepository(oc_t_category_description::class)->findAll();
+
     foreach ($data as $row_index=>$row){
         $img = $img_ext = '';
         if ($row_index >= $start_row - 1){//начинаем с указанной начальной строки
@@ -60,7 +57,7 @@
                         }
                         //генерируем файл, сохраняем и запоминаем тип и название
                         $file_name = "{$user_id}user{$row_index}product_id$rand_id.{$extension}";
-                        file_put_contents("$IMG_PATH/$file_name", file_get_contents_curl($link));
+                        #file_put_contents("$IMG_PATH/$file_name", file_get_contents_curl($link));
                         $img = $file_name;
                         $img_ext = "image/$extension";
                     }
@@ -77,40 +74,37 @@
             $name = format_str($row[$name_column - 1], 100);
             $price = format_str($row[$price_column - 1], 10);
 
-            //определяем категорию и типа или же ставим 0
-            $category_id = $type_id = 0;
-            $category = contains($categories, $name);
-            if ($category) {
-                $category_id = $category->getCatId();
-            }
-            else {
-                $category_id = -1;
-            }
-            $type = contains($types, $name);
-            if ($type) {
-                $type_id = $type->getItemTypeId();
-            }
-            else {
-                $type_id = -1;
-            }
-            $type = contains($types, $name);
+            $category = 6;
+            $type = 0;
 
+            $type_cat = null;
+            foreach ($keys as $key){
+                if ($key->getKeys()) {
+                    if (str_contains(mb_strtolower($name, 'utf-8'), mb_strtolower($key->getKeys(), 'utf-8'))){
+                        $category = $key->getCatId();
+                    }
+                }
+            }
+            $cat_type = $entityManager->getRepository(oc_t_type_description::class)->findOneBy(['cat' => $category]);
+            if ($cat_type){
+                $type = $cat_type->getId();
+            }
             //записываем все вычитанные данные о строке
-            if ($desc and $name and $price ){
+            if ($desc and $name and $price){
                 array_push($result, [
                     'row' => $row_index,
                     'name' => $name,
                     'price' => $price,
                     'desc' => $desc,
-                    'category' => $category_id,
-                    'type' => $type_id,
-                    'img' => $img,
+                    'category' => $category,
+                    'type' => $type,
+                    'img_path' => $img,
                     'img_type' => $img_ext
                 ]);
             }
         }
     }
-
+    //начинаем читать все данные из таблицы
     //если тип изображение
     if ($img_type == 'img_type_img'){
         //вычитываем все изображения из таблицы
@@ -124,6 +118,7 @@
                 //проверяем тип изображения
                 if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
                     $zipReader = fopen($drawing->getPath(), 'r');
+
                     $imageContents = '';
                     while (!feof($zipReader)) {
                         $imageContents .= fread($zipReader, 1024);
@@ -134,11 +129,15 @@
                             mkdir($IMG_PATH);
                         }
                         //генерируем файл, сохраняем и запоминаем тип и название
-                        $rand_id = rand(1111111111, 9999999999);
-                        $file_name = "{$user_id}user{$row}product_id{$rand_id}.{$extension}";
-                        file_put_contents("$IMG_PATH/{$file_name}", $imageContents);
-                        $result[$key]['img'] = $file_name;
-                        $result[$key]['img_type'] = 'image/'.$extension;
+                        $file_name = $excel_name.$row;
+                        file_put_contents("$IMG_PATH/{$file_name}_original.{$extension}", $imageContents);
+
+                        foreach ($SIZE_VARIANT as $variant=>$variant_size){
+                            resizeImage($drawing->getPath(), $variant_size['width'], $variant_size['height'], $IMG_PATH.'/'.$file_name.'_'.$variant.'.'.$extension, $extension);
+                        }
+
+                        $result[$key]['img_path'] = $file_name;
+                        $result[$key]['img_type'] = $extension;
                     }
                 }
             }
@@ -150,15 +149,16 @@
         $entityManager->remove($psed_item);
         $entityManager->flush();
     }
+
     foreach ($result as $index=>$item){
-        $psed_data = new psed_data();
-        $psed_data->setItemTitle($item['name']);
-        $psed_data->setIPrice($item['price']);
-        $psed_data->setItemDesc($item['desc']);
-        $psed_data->setFkICategoryId($item['category']);
-        $psed_data->setIdItemClass($item['type']);
-        $psed_data->setResurs($item['img']);
-        $psed_data->setResursType($item['img_type']);
+        $psed_data = new psed_data(
+            $item['name'],
+            $item['desc'],
+            $item['price'],
+            $item['category'],
+            $item['type'],
+            $item['img_path'],
+            $item['img_type']);
         $entityManager->persist($psed_data);
         $entityManager->flush();
     }

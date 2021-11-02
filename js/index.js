@@ -1,8 +1,8 @@
 $(function (){
     //выбранный тип изображения
-    var selected_img_type = img_type;
+    var img_type_selected = $("input[name='img_type']:checked");
     img_type.change(function (){
-        selected_img_type = $(this);
+        img_type_selected = $(this);
     })
     //делаем кнопку импорта данных неактивной
     price_import_btn.prop("disabled", true);
@@ -72,7 +72,7 @@ $(function (){
         //набор полей с одинаковой валидацией
         const intColumns = [start_row, name_column, price_column];
         //если выбран типа изображения, добавляем поле столбца изображения в набор
-        if (['img_type_img', 'img_type_url'].includes(selected_img_type.val())){
+        if (['img_type_img', 'img_type_url'].includes(img_type_selected.val())){
             intColumns.push(img_column);
         }
 
@@ -95,7 +95,7 @@ $(function (){
             //скрываем сообщение об ошибке
             closeMsg();
             //дополняем набор всеми оставшимися полями
-            const fields = intColumns.concat(desc_columns, user_id, selected_img_type, img_column);
+            const fields = intColumns.concat(desc_columns, user_id, img_type_selected, img_column);
             //инициализируем данные для отправки на сервер
             var data = new FormData();
             fields.forEach((field) => data.append(field.attr("name"), field.val()));

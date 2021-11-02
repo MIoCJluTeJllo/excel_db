@@ -1,115 +1,117 @@
 <?php
+
+
+
 use Doctrine\ORM\Mapping as ORM;
 
 /**
+ * oc_user_excel_price
+ *
+ * @ORM\Table(name="oc_user_excel_price", indexes={@ORM\Index(name="id_user_id", columns={"id_user_id"})})
  * @ORM\Entity
  */
 class oc_user_excel_price
 {
+    public function __construct($numTitle, $numDesc, $numPrice, $numStr, $idUser)
+    {
+        $this->numTitle = $numTitle;
+        $this->numDesc = $numDesc;
+        $this->numPrice = $numPrice;
+        $this->numStr = $numStr;
+        $this->idUser = $idUser;
+    }
     /**
+     * @var int
+     *
+     * @ORM\Column(name="id", type="integer", nullable=false)
      * @ORM\Id
-     * @ORM\Column(type="integer")
-     * @ORM\GeneratedValue
+     * @ORM\GeneratedValue(strategy="IDENTITY")
      */
     private $id;
+
     /**
+     * @var string
+     *
+     * @ORM\Column(name="num_title", type="string", length=255, nullable=false)
+     */
+    private $numTitle;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="num_desc", type="string", length=255, nullable=false)
+     */
+    private $numDesc;
+
+    /**
+     * @var int
+     *
+     * @ORM\Column(name="num_price", type="integer", nullable=false)
+     */
+    private $numPrice;
+
+    /**
+     * @var int
+     *
+     * @ORM\Column(name="num_str", type="integer", nullable=false)
+     */
+    private $numStr;
+
+    /**
+     * @var \oc_t_user
+     *
      * @ORM\ManyToOne(targetEntity="oc_t_user")
+     * @ORM\JoinColumns({
+     *   @ORM\JoinColumn(name="id_user_id", referencedColumnName="pk_i_id")
+     * })
      */
-    private $id_user;
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $num_title;
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $num_desc;
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private $num_price;
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private $num_str;
+    private $idUser;
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getIdUser()
+    public function getId(): int
     {
-        return $this->id_user;
+        return $this->id;
     }
 
     /**
-     * @param mixed $id_user
+     * @return string
      */
-    public function setIdUser($id_user)
+    public function getNumTitle(): string
     {
-        $this->id_user = $id_user;
+        return $this->numTitle;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getNumTitle()
+    public function getNumDesc(): string
     {
-        return $this->num_title;
+        return $this->numDesc;
     }
 
     /**
-     * @param mixed $num_title
+     * @return int
      */
-    public function setNumTitle($num_title)
+    public function getNumPrice(): int
     {
-        $this->num_title = $num_title;
+        return $this->numPrice;
     }
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getNumDesc()
+    public function getNumStr(): int
     {
-        return $this->num_desc;
+        return $this->numStr;
     }
 
     /**
-     * @param mixed $num_desc
+     * @return oc_t_user
      */
-    public function setNumDesc($num_desc)
+    public function getIdUser(): oc_t_user
     {
-        $this->num_desc = $num_desc;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getNumPrice()
-    {
-        return $this->num_price;
-    }
-
-    /**
-     * @param mixed $num_price
-     */
-    public function setNumPrice($num_price)
-    {
-        $this->num_price = $num_price;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getNumStr()
-    {
-        return $this->num_str;
-    }
-
-    /**
-     * @param mixed $num_str
-     */
-    public function setNumStr($num_str)
-    {
-        $this->num_str = $num_str;
+        return $this->idUser;
     }
 }

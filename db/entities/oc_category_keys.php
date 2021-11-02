@@ -1,71 +1,53 @@
 <?php
+
+
+
 use Doctrine\ORM\Mapping as ORM;
 
 /**
+ * OcCategoryKeys
+ *
+ * @ORM\Table(name="oc_category_keys")
  * @ORM\Entity
  */
 class oc_category_keys
 {
     /**
+     * @var int
+     *
+     * @ORM\Column(name="id", type="integer", nullable=false)
      * @ORM\Id
-     * @ORM\Column(type="integer")
-     * @ORM\GeneratedValue
+     * @ORM\GeneratedValue(strategy="IDENTITY")
      */
     private $id;
+
     /**
-     * @ORM\Column(type="integer")
+     * @var int
+     *
+     * @ORM\Column(name="cat_id", type="integer", nullable=false)
      */
-    private $cat_id;
+    private $catId;
+
     /**
-     * @ORM\Column(type="string")
+     * @var string
+     *
+     * @ORM\Column(name="keys", type="string", length=255, nullable=false)
      */
     private $keys;
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getId()
+    public function getCatId(): int
     {
-        return $this->id;
+        return $this->catId;
     }
 
     /**
-     * @param mixed $id
+     * @return string
      */
-    public function setId($id): void
-    {
-        $this->id = $id;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getCatId()
-    {
-        return $this->cat_id;
-    }
-
-    /**
-     * @param mixed $cat_id
-     */
-    public function setCatId($cat_id): void
-    {
-        $this->cat_id = $cat_id;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getKeys()
+    public function getKeys(): string
     {
         return $this->keys;
-    }
-
-    /**
-     * @param mixed $keys
-     */
-    public function setKeys($keys): void
-    {
-        $this->keys = $keys;
     }
 }
